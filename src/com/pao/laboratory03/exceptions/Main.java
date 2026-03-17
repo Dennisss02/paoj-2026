@@ -1,5 +1,8 @@
 package com.pao.laboratory03.exceptions;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Exercițiul 3 — Excepții (checked, unchecked, custom)
  *
@@ -59,9 +62,79 @@ package com.pao.laboratory03.exceptions;
  * Metoda process() a aruncat: Vârsta 999 nu este validă (0-150)
  */
 public class Main {
+    public static void riskyMethod() {
+        String s = null;
+        System.out.println(s.length());
+    }
+    public static void validateAge(int age) {
+        if(age < 0 || age > 150) {
+            throw new InvalidAgeException("Varsta " + age + " nu este valida (0-150)");
+        }
+    }
+    public static void addToList(List<String> list, String name) {
+        if(list.contains(name)) {
+            throw new DuplicateEntryException("\'" + name + "\' exista deja in lista");
+        }
+    }
+    public static void process(int age) throws InvalidAgeException {
+        if(age < 0 || age > 150) {
+            throw new InvalidAgeException("Varsta " + age + " nu este valida (0-150)");
+        }
+    }
     public static void main(String[] args) {
         // TODO: implementează pașii de mai sus
         // Hint: creează mai întâi InvalidAgeException.java și DuplicateEntryException.java
+        try {
+            riskyMethod();
+        }
+        catch(NullPointerException e) {
+            System.out.println("Prins: " + e.getMessage());
+        }
+        finally {
+            System.out.println("FInally se executa mereu");
+        }
+
+        try {
+            validateAge(-5);
+        }
+        catch(InvalidAgeException e) {
+            System.out.println("InvalidAgeException: " + e.getMessage());
+        }
+        try {
+            List<String> lista = new ArrayList<>();
+            lista.add("Ana");
+            addToList(lista, "Ana");
+        }
+        catch(DuplicateEntryException e) {
+            System.out.println("DuplicateEntryException: " + e.getMessage());
+        }
+
+        try {
+            validateAge(200);
+            List<String> lista = new ArrayList<>();
+            lista.add("Maria");
+            addToList(lista, "Maria");
+        }
+        catch(RuntimeException e) {
+            System.out.println("Exceptie prinsa: " + e.getMessage());
+        }
+
+        try {
+            validateAge(-1);
+        }
+        catch(InvalidAgeException e) {
+            System.out.println("InvalidAgeException prinsa specific: " + e.getMessage());
+        }
+        catch(RuntimeException e) {
+            System.out.println("Exceptie prinsa general: " + e.getMessage());
+        }
+
+        try {
+            process(999);
+        }
+        catch(InvalidAgeException e) {
+            System.out.println("Metoda process() a aruncat: " + e.getMessage());
+        }
     }
 }
 
