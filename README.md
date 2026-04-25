@@ -6,7 +6,7 @@ Materiale și resurse pentru cursul **Programare Avansată pe Obiecte în Java**
 
 ## Proiect
 
-📁 **[Cerințe proiect individual](src/com/pao/project/README.md)** — Etapa I (24 apr) · Etapa II (5 iun)
+📁 **[Cerințe proiect individual](src/com/pao/project/README_CERINTE.md)** — Etapa I (24 apr) · Etapa II (5 iun)
 
 
 ## Laboratoare
