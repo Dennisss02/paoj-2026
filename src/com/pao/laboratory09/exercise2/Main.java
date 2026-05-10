@@ -11,6 +11,37 @@ public class Main {
     private static final String OUTPUT_FILE = "output/lab09_ex2.bin";
     private static final int RECORD_SIZE = 32;
 
+    private static void inregistrare(RandomAccessFile raf, int index) throws IOException {
+        raf.seek((long)index * RECORD_SIZE);
+        byte[] bytes = new byte[RECORD_SIZE];
+        raf.readFully(bytes);
+        ByteBuffer bb = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
+
+        int id = bb.getInt(0);
+        double suma = bb.getDouble(4);
+        byte[] b_data = new byte[10];
+        System.arraycopy(bytes, 12, b_data, 0, 10);
+        String data = new String(b_data).trim();
+        TipTranzactie tip;
+        if(bytes[22] == 0) {
+            tip = TipTranzactie.CREDIT;
+        }
+        else {
+            tip = TipTranzactie.DEBIT;
+        }
+        String status;
+        if(bytes[23] == 0) {
+            status = "PENDING";
+        }
+        else if(bytes[23] == 1) {
+            status = "PROCESSED";
+        }
+        else {
+            status = "REJECTED";
+        }
+        System.out.printf("[%d] id=%d data=%s tip=%s suma=%.2f RON status=%s\n", index, id, data, tip, suma, status);
+    }
+
     public static void main(String[] args) throws Exception {
         // TODO: Implementează conform Readme.md
         //
@@ -31,6 +62,67 @@ public class Main {
         // Format linie output:
         //   [idx] id=<id> data=<data> tip=<CREDIT|DEBIT> suma=<suma:.2f> RON status=<STATUS>
 
-        System.out.println("TODO: implementează exercițiul 2");
+        Scanner sc = new Scanner(System.in);
+        int N = sc.nextInt();
+        File file = new File(OUTPUT_FILE);
+        file.getParentFile().mkdirs();
+
+        try(DataOutputStream dos = new DataOutputStream(new FileOutputStream(file))) {
+            for(int i = 0; i < N; i++) {
+                int id = sc.nextInt();
+                double suma = sc.nextDouble();
+                String data = sc.next();
+                TipTranzactie tip = TipTranzactie.valueOf(sc.next());
+                byte[] b_id = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(id).array();
+                byte[] b_suma = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putDouble(suma).array();
+                String data_padded = String.format("%-10s", data);
+
+                dos.write(b_id);
+                dos.write(b_suma);
+                dos.write(data_padded.getBytes());
+                if(tip.equals(TipTranzactie.CREDIT)) {
+                    dos.writeByte(0);
+                }
+                else {
+                    dos.writeByte(1);
+                }
+                dos.writeByte(0);
+                dos.write(new byte[8]);
+            }
+        }
+        try(RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+            while(sc.hasNext()) {
+                String comanda = sc.next();
+                switch(comanda) {
+                    case "READ":
+                        int index1 = sc.nextInt();
+                        inregistrare(raf, index1);
+                        break;
+                    case "UPDATE":
+                        int index2 = sc.nextInt();
+                        String status_str = sc.next();
+                        byte status = 0;
+                        if(status_str.equals("PROCESSED")) {
+                            status = 1;
+                        }
+                        else if(status_str.equals("REJECTED")) {
+                            status = 2;
+                        }
+                        raf.seek((long)index2 * RECORD_SIZE + 23);
+                        raf.writeByte(status);
+                        System.out.println("Updated [" + index2 + "]: " + status_str);
+                        break;
+                    case "PRINT_ALL":
+                        long total = raf.length() / RECORD_SIZE;
+                        for(int i = 0; i < total; i++) {
+                            inregistrare(raf, i);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        sc.close();
     }
 }
